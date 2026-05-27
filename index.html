@@ -68,18 +68,19 @@
         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
             <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
                 <div>
-                    <h2 class="text-lg font-bold text-gray-800">🗂️ 도서 분류 체계 관리</h2>
-                    <p class="text-[11px] text-gray-400">* 상위 카테고리를 선택하면 하위 메뉴가 펼쳐집니다.</p>
+                    <h2 class="text-lg font-bold text-gray-800">🗂️ 도서 분류 체계 관리 (3단계)</h2>
+                    <p class="text-[11px] text-gray-400">* 최상위와 중간 분류를 선택하면 최하위 세부 메뉴가 펼쳐집니다.</p>
                 </div>
                 <div class="flex gap-1">
-                    <button onclick="addRootCategory()" class="bg-blue-600 text-white px-2.5 py-1 rounded text-xs font-bold shadow-sm hover:bg-blue-700">➕ 상위 추가</button>
-                    <button onclick="openEditCategoryModal()" class="bg-amber-500 text-white px-2.5 py-1 rounded text-xs font-bold shadow-sm hover:bg-amber-600">✏️ 관리/수정</button>
+                    <button onclick="openEditCategoryModal()" class="bg-amber-500 text-white px-2.5 py-1 rounded text-xs font-bold shadow-sm hover:bg-amber-600">✏️ 하위 카테고리 관리/수정</button>
                 </div>
             </div>
             
-            <div id="root-category-tabs" class="flex flex-wrap gap-1.5 border-b pb-3"></div>
+            <div id="root-category-tabs" class="flex flex-wrap gap-1.5 border-b pb-2"></div>
             
-            <div id="sub-category-container" class="pt-3 flex flex-wrap gap-2"></div>
+            <div id="mid-category-tabs" class="flex flex-wrap gap-1.5 pt-2 border-b pb-2"></div>
+            
+            <div id="sub-category-container" class="pt-2 flex flex-wrap gap-2"></div>
         </div>
 
         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
@@ -177,25 +178,48 @@
 
 
 <script>
-    // 복합 로컬 원격 로컬스토리지 구조 정의 v5 (알라딘/교보 교차 가상 서점 스키마)
-    let mockStore = JSON.parse(localStorage.getItem('no24_storage_v5')) || {
-        // 구조화된 상위/하위 다차원 카테고리 맵 구조 데이터
+    // 구조 변경 고도화 v6 (최상위 > 중간 > 하위 3단계 트리 스키마 구조)
+    let mockStore = JSON.parse(localStorage.getItem('no24_storage_v6')) || {
         categoryMap: [
-            { id: "cat_1", name: "국내도서", subs: ["소설", "시/에세이", "인문학", "사회과학", "자연과학", "컴퓨터/IT"] },
-            { id: "cat_2", name: "외국도서", subs: ["Literature", "Business", "Science", "Tech"] },
-            { id: "cat_3", name: "eBook", subs: ["웹소설", "경영/경제", "장르문학"] }
+            {
+                id: "root_1",
+                name: "국내도서",
+                mids: [
+                    { id: "mid_1_1", name: "소설", subs: ["한국소설", "영미소설", "추리/미스터리"] },
+                    { id: "mid_1_2", name: "시/에세이", subs: ["사랑/연애", "인생 에세이"] },
+                    { id: "mid_1_3", name: "인문학", subs: ["철학", "역사", "심리학"] },
+                    { id: "mid_1_4", name: "컴퓨터/IT", subs: ["웹퍼블리싱", "프론트엔드", "인공지능"] }
+                ]
+            },
+            {
+                id: "root_2",
+                name: "외국도서",
+                mids: [
+                    { id: "mid_2_1", name: "Literature", subs: ["Fiction", "Poetry"] },
+                    { id: "mid_2_2", name: "Tech", subs: ["Programming", "Data Science"] }
+                ]
+            },
+            {
+                id: "root_3",
+                name: "eBook",
+                mids: [
+                    { id: "mid_3_1", name: "웹소설", subs: ["판타지", "로맨스"] },
+                    { id: "mid_3_2", name: "경영/경제", subs: ["재테크", "트렌드"] }
+                ]
+            }
         ],
-        // 목업 서적 기본 마스터 세트 데이터
         books: [
-            { id: 101, title: "가짜 서점의 행복론", author: "알렉스 김", publisher: "가상출판사", price: 16800, img: "", rootCat: "cat_1", subCat: "시/에세이", detail: "가짜 공간에서 느껴지는 진짜 위로에 관하여 이야기하는 에세이집.", hit: true },
-            { id: 102, title: "실패 없는 마크업 가이드", author: "박코딩", publisher: "엔진출판", price: 28000, img: "", rootCat: "cat_1", subCat: "컴퓨터/IT", detail: "모든 브라우저와 디바이스를 호환하는 완벽한 모던 프론트엔드 아키텍처 가이드.", hit: false },
-            { id: 103, title: "The Mocking Mind", author: "J. Smith", publisher: "CyberPress", price: 21000, img: "", rootCat: "cat_2", subCat: "Science", detail: "인간의 인지 구조가 가상 세계와 마주했을 때의 뉴런 거동 탐색 연구서.", hit: true }
+            { id: 101, title: "가짜 서점의 행복론", author: "알렉스 김", publisher: "가상출판사", price: 16800, img: "", rootCatId: "root_1", midCatId: "mid_1_2", subCatName: "인생 에세이", detail: "가짜 공간에서 느껴지는 진짜 위로에 관하여 이야기하는 에세이집.", hit: true },
+            { id: 102, title: "실패 없는 마크업 가이드", author: "박코딩", publisher: "엔진출판", price: 28000, img: "", rootCatId: "root_1", midCatId: "mid_1_4", subCatName: "웹퍼블리싱", detail: "모든 브라우저와 디바이스를 호환하는 완벽한 모던 프론트엔드 아키텍처 가이드.", hit: false },
+            { id: 103, title: "The Mocking Mind", author: "J. Smith", publisher: "CyberPress", price: 21000, img: "", rootCatId: "root_2", midCatId: "mid_2_2", subCatName: "Data Science", detail: "인간의 인지 구조가 가상 세계와 마주했을 때의 뉴런 거동 탐색 연구서.", hit: true }
         ],
         cart: []
     };
 
-    let selectedRootCatId = "cat_1";
-    let selectedSubCatName = "전체보기";
+    // 트리 네비게이션용 상태 변수
+    let selectedRootId = "root_1";
+    let selectedMidId = "mid_1_1";
+    let selectedSubName = "전체보기";
     let activeDetailBookId = null;
 
     function initStore() {
@@ -203,7 +227,6 @@
         updateCartState();
     }
 
-    // 파일 로컬 파일 리더 기반 가상 메모리 스왑 드래그앤드롭 이벤트 리스너 처리기
     function initDragDropFrame(inputId) {
         const zone = document.getElementById('drag-drop-zone');
         if(!zone) return;
@@ -226,7 +249,7 @@
     }
 
     function syncStorage() {
-        localStorage.setItem('no24_storage_v5', JSON.stringify(mockStore));
+        localStorage.setItem('no24_storage_v6', JSON.stringify(mockStore));
     }
 
     function showSection(sectionId) {
@@ -244,7 +267,6 @@
         document.getElementById('search-input').focus();
     }
 
-    // 홈 대시보드 (추천도서 / 관심도서 컴포넌트 렌더링)
     function renderDashboard() {
         const recommendContainer = document.getElementById('recommend-books-container');
         const interestContainer = document.getElementById('interest-books-container');
@@ -252,7 +274,6 @@
         recommendContainer.innerHTML = "";
         interestContainer.innerHTML = "";
 
-        // 1. 추천도서 렌더링
         mockStore.books.forEach(b => {
             const cover = b.img ? `<img src="${b.img}" class="w-full h-36 object-cover rounded-md shadow-sm">` : `<div class="w-full h-36 bg-gradient-to-br from-gray-100 to-gray-200 rounded-md flex items-center justify-center text-3xl shadow-inner">📘</div>`;
             
@@ -270,7 +291,6 @@
             recommendContainer.appendChild(card);
         });
 
-        // 2. 관심도서 렌더링 (리스트형 스타일)
         const interestList = mockStore.books.filter(b => b.hit === true || b.id % 2 === 0);
         interestList.forEach(b => {
             const inlineCover = b.img ? `<img src="${b.img}" class="w-10 h-14 object-cover rounded shadow-xs">` : `<div class="w-10 h-14 bg-amber-50 rounded flex items-center justify-center text-lg border">📙</div>`;
@@ -289,66 +309,93 @@
         });
     }
 
-    // 카테고리 네비게이터 관리 코어 제어 엔진
     function openCategoryTab() {
         showSection('category-section');
         renderCategoryEngine();
     }
 
+    // 3단계 구조 카테고리 브라우징 엔진 렌더링
     function renderCategoryEngine() {
-        const tabBox = document.getElementById('root-category-tabs');
+        const rootBox = document.getElementById('root-category-tabs');
+        const midBox = document.getElementById('mid-category-tabs');
         const subBox = document.getElementById('sub-category-container');
-        tabBox.innerHTML = "";
+        
+        rootBox.innerHTML = "";
+        midBox.innerHTML = "";
         subBox.innerHTML = "";
 
-        // 상위 카테고리 버튼 구성
+        // 1단계: 최상위 카테고리 생성
         mockStore.categoryMap.forEach(root => {
             const btn = document.createElement('button');
-            btn.className = `px-3 py-1.5 rounded-full text-xs font-bold transition-all ${selectedRootCatId === root.id ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`;
+            btn.className = `px-3 py-1 rounded-full text-xs font-bold transition-all ${selectedRootId === root.id ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`;
             btn.innerText = root.name;
             btn.onclick = () => {
-                selectedRootCatId = root.id;
-                selectedSubCatName = "전체보기";
+                selectedRootId = root.id;
+                const currentRoot = mockStore.categoryMap.find(r => r.id === selectedRootId);
+                selectedMidId = currentRoot && currentRoot.mids.length > 0 ? currentRoot.mids[0].id : null;
+                selectedSubName = "전체보기";
                 renderCategoryEngine();
             };
-            tabBox.appendChild(btn);
+            rootBox.appendChild(btn);
         });
 
-        // 하위 카테고리 버튼 구성 정의
-        const currentRootObj = mockStore.categoryMap.find(r => r.id === selectedRootCatId);
-        if(currentRootObj) {
-            // 전체보기 기본 생성 조립
+        const currentRootObj = mockStore.categoryMap.find(r => r.id === selectedRootId);
+        if (!currentRootObj) return;
+
+        // 2단계: 중간 카테고리 생성
+        currentRootObj.mids.forEach(mid => {
+            const btn = document.createElement('button');
+            btn.className = `px-2.5 py-1 rounded-md text-xs font-bold transition-all ${selectedMidId === mid.id ? 'bg-amber-500 text-white shadow-xs' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'}`;
+            btn.innerText = mid.name;
+            btn.onclick = () => {
+                selectedMidId = mid.id;
+                selectedSubName = "전체보기";
+                renderCategoryEngine();
+            };
+            midBox.appendChild(btn);
+        });
+
+        const currentMidObj = currentRootObj.mids.find(m => m.id === selectedMidId);
+        
+        // 3단계: 하위 카테고리 생성
+        if (currentMidObj) {
             const allBtn = document.createElement('button');
-            allBtn.className = `px-2.5 py-1 rounded-md text-xs font-medium transition-all ${selectedSubCatName === '전체보기' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-gray-500 hover:bg-gray-200'}`;
+            allBtn.className = `px-2.5 py-1 rounded-md text-xs font-medium transition-all ${selectedSubName === '전체보기' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-gray-500 hover:bg-gray-200'}`;
             allBtn.innerText = "✨ 전체보기";
-            allBtn.onclick = () => { selectedSubCatName = "전체보기"; renderBooksByFilter(); };
+            allBtn.onclick = () => { selectedSubName = "전체보기"; renderBooksByFilter(); };
             subBox.appendChild(allBtn);
 
-            currentRootObj.subs.forEach(sub => {
+            currentMidObj.subs.forEach(sub => {
                 const btn = document.createElement('button');
-                btn.className = `px-2.5 py-1 rounded-md text-xs font-medium transition-all ${selectedSubCatName === sub ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-gray-500 hover:bg-gray-200'}`;
+                btn.className = `px-2.5 py-1 rounded-md text-xs font-medium transition-all ${selectedSubName === sub ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-gray-500 hover:bg-gray-200'}`;
                 btn.innerText = sub;
-                btn.onclick = () => { selectedSubCatName = sub; renderBooksByFilter(); };
+                btn.onclick = () => { selectedSubName = sub; renderBooksByFilter(); };
                 subBox.appendChild(btn);
             });
         }
         renderBooksByFilter();
     }
 
-    // 도서 리스트 실시간 필터 및 렌더링
+    // 도서 필터링 출력
     function renderBooksByFilter() {
         const container = document.getElementById('category-books-list');
         container.innerHTML = "";
 
-        const currentRootObj = mockStore.categoryMap.find(r => r.id === selectedRootCatId);
-        document.getElementById('category-view-title').innerText = `${currentRootObj ? currentRootObj.name : ''} > ${selectedSubCatName}`;
+        const rootObj = mockStore.categoryMap.find(r => r.id === selectedRootId);
+        const midObj = rootObj ? rootObj.mids.find(m => m.id === selectedMidId) : null;
+        
+        document.getElementById('category-view-title').innerText = 
+            `${rootObj ? rootObj.name : ''} > ${midObj ? midObj.name : ''} > ${selectedSubName}`;
 
-        let targetList = mockStore.books.filter(b => b.rootCat === selectedRootCatId);
-        if(selectedSubCatName !== "전체보기") {
-            targetList = targetList.filter(b => b.subCat === selectedSubCatName);
+        let targetList = mockStore.books.filter(b => b.rootCatId === selectedRootId);
+        if (selectedMidId) {
+            targetList = targetList.filter(b => b.midCatId === selectedMidId);
+        }
+        if (selectedSubName !== "전체보기") {
+            targetList = targetList.filter(b => b.subCatName === selectedSubName);
         }
 
-        if(targetList.length === 0) {
+        if (targetList.length === 0) {
             container.innerHTML = `<div class="text-center py-12 text-gray-400 text-xs border border-dashed rounded-xl">해당 카테고리 필터에 배정된 가상 서적이 존재하지 않습니다.</div>`;
             return;
         }
@@ -368,7 +415,7 @@
                 <div class="flex-1 min-w-0">
                     <h4 class="font-bold text-sm text-gray-800 truncate">${b.title}</h4>
                     <p class="text-xs text-gray-400 mt-0.5">${b.author} | ${b.publisher}</p>
-                    <span class="inline-block bg-blue-50 text-blue-600 text-[9px] px-1.5 py-0.5 rounded-sm font-bold mt-1">${b.subCat}</span>
+                    <span class="inline-block bg-blue-50 text-blue-600 text-[9px] px-1.5 py-0.5 rounded-sm font-bold mt-1">${b.subCatName || '일반'}</span>
                 </div>
             `;
             
@@ -388,74 +435,71 @@
         });
     }
 
-    // ➕ 상위 카테고리 노드 추가
-    function addRootCategory() {
-        const name = prompt("새로운 대분류 상위 카테고리명을 명명하세요:");
-        if(!name || name.trim() === "") return;
-
-        const newId = "cat_" + Date.now();
-        mockStore.categoryMap.push({ id: newId, name: name.trim(), subs: ["일반"] });
-        syncStorage();
-        renderCategoryEngine();
-    }
-
-    // ✏️ 카테고리 구조 설정 모달창
+    // ✏️ 하위 카테고리 관리/수정 모달창 (3단계 트리 제어)
     function openEditCategoryModal() {
-        let optionsHtml = mockStore.categoryMap.map((c, i) => `<option value="${c.id}">${c.name}</option>`).join('');
+        let optionsHtml = "";
+        mockStore.categoryMap.forEach(root => {
+            root.mids.forEach(mid => {
+                optionsHtml += `<option value="${root.id}|||${mid.id}">[${root.name}] ➔ ${mid.name}</option>`;
+            });
+        });
         
-        openGlobalModal("분류 및 하위 카테고리 통합 관리", `
+        openGlobalModal("하위(3단계) 세부 분류 통합 관리", `
             <div class="bg-gray-50 p-3 rounded-lg text-xs text-gray-500 mb-2 space-y-1">
-                <p>• 하위 카테고리는 콤마(,)로 구분하여 동시 등록/치환할 수 있습니다.</p>
-                <p>• 상위 분류명을 직접 변경할 수도 있습니다.</p>
+                <p>• 최상위 > 중간분류 조합을 선택하고 소속 하위(3단계) 분류를 관리합니다.</p>
+                <p>• 하위 카테고리는 콤마(,)로 구분하여 수정 및 추가, 삭제가 가능합니다.</p>
             </div>
             <div>
-                <label class="text-xs text-gray-500 font-bold mb-1 block">대상 상위 카테고리 선택</label>
+                <label class="text-xs text-gray-500 font-bold mb-1 block">대상 중간 분류(2단계) 선택</label>
                 <select id="modal-cat-select" onchange="syncCategoryModalFields()" class="w-full border p-2 rounded-lg text-sm bg-white">${optionsHtml}</select>
             </div>
             <div>
-                <label class="text-xs text-gray-500 font-bold mb-1 block">상위 카테고리 명칭 수정</label>
-                <input id="modal-cat-root-name" type="text" class="w-full border p-2 rounded-lg text-sm">
-            </div>
-            <div>
-                <label class="text-xs text-gray-500 font-bold mb-1 block">소속 하위 세부 분류 배열 수정 (쉼표 구분)</label>
-                <textarea id="modal-cat-sub-names" rows="3" class="w-full border p-2 rounded-lg text-sm"></textarea>
+                <label class="text-xs text-gray-500 font-bold mb-1 block">소속 최하위 세부 분류 배열 수정 (쉼표 구분)</label>
+                <textarea id="modal-cat-sub-names" rows="4" class="w-full border p-2 rounded-lg text-sm"></textarea>
             </div>
         `, () => {
-            const targetId = document.getElementById('modal-cat-select').value;
-            const targetRootObj = mockStore.categoryMap.find(c => c.id === targetId);
-            const nextRootName = document.getElementById('modal-cat-root-name').value.trim();
+            const compositeKey = document.getElementById('modal-cat-select').value;
+            const [rootId, midId] = compositeKey.split('|||');
+            
+            const rootObj = mockStore.categoryMap.find(c => c.id === rootId);
+            const midObj = rootObj ? rootObj.mids.find(m => m.id === midId) : null;
             const nextSubsRaw = document.getElementById('modal-cat-sub-names').value;
 
-            if(!nextRootName) return alert("카테고리 이름을 공백으로 둘 수 없습니다.");
-            
-            targetRootObj.name = nextRootName;
-            targetRootObj.subs = nextSubsRaw.split(',').map(s => s.trim()).filter(s => s !== "");
-            
-            if(targetRootObj.subs.length === 0) targetRootObj.subs = ["일반"];
-
-            selectedRootCatId = targetId;
-            selectedSubCatName = "전체보기";
-            syncStorage();
-            renderCategoryEngine();
-            closeGlobalModal();
+            if (midObj) {
+                midObj.subs = nextSubsRaw.split(',').map(s => s.trim()).filter(s => s !== "");
+                if (midObj.subs.length === 0) midObj.subs = ["일반"];
+                
+                selectedRootId = rootId;
+                selectedMidId = midId;
+                selectedSubName = "전체보기";
+                
+                syncStorage();
+                renderCategoryEngine();
+                closeGlobalModal();
+            }
         });
 
         syncCategoryModalFields();
     }
 
     function syncCategoryModalFields() {
-        const id = document.getElementById('modal-cat-select').value;
-        const obj = mockStore.categoryMap.find(c => c.id === id);
-        if(obj) {
-            document.getElementById('modal-cat-root-name').value = obj.name;
-            document.getElementById('modal-cat-sub-names').value = obj.subs.join(', ');
+        const compositeKey = document.getElementById('modal-cat-select').value;
+        if(!compositeKey) return;
+        const [rootId, midId] = compositeKey.split('|||');
+        
+        const rootObj = mockStore.categoryMap.find(c => c.id === rootId);
+        const midObj = rootObj ? rootObj.mids.find(m => m.id === midId) : null;
+        
+        if (midObj) {
+            document.getElementById('modal-cat-sub-names').value = midObj.subs.join(', ');
         }
     }
 
-    // ➕ 신규 도서 등록 모달 (알라딘/교보 이미지 수동 업로드 스왑 호환)
+    // ➕ 신규 도서 등록 (3단계 트리 하위 카테고리 매핑 반영)
     function showAddBookModal() {
-        const currentRootObj = mockStore.categoryMap.find(r => r.id === selectedRootCatId);
-        let subOptions = currentRootObj ? currentRootObj.subs.map(s => `<option value="${s}">${s}</option>`).join('') : '';
+        const rootObj = mockStore.categoryMap.find(r => r.id === selectedRootId);
+        const midObj = rootObj ? rootObj.mids.find(m => m.id === selectedMidId) : null;
+        let subOptions = midObj ? midObj.subs.map(s => `<option value="${s}">${s}</option>`).join('') : '<option value="일반">일반</option>';
 
         openGlobalModal("no24 시스템 신규 가상 도서 등록", `
             <div id="drag-drop-zone" class="w-full h-24 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center p-2 text-center cursor-pointer transition-colors">
@@ -478,7 +522,7 @@
             const author = document.getElementById('form-book-author').value.trim();
             const publisher = document.getElementById('form-book-publisher').value.trim();
             const price = parseInt(document.getElementById('form-book-price').value) || 0;
-            const subCat = document.getElementById('form-book-sub').value;
+            const subCatName = document.getElementById('form-book-sub').value;
             const img = document.getElementById('form-book-img').value;
             const detail = document.getElementById('form-book-detail').value;
 
@@ -487,8 +531,9 @@
             mockStore.books.push({
                 id: Date.now(),
                 title, author, publisher, price, img, detail,
-                rootCat: selectedRootCatId,
-                subCat, hit: false
+                rootCatId: selectedRootId,
+                midCatId: selectedMidId,
+                subCatName, hit: false
             });
 
             syncStorage();
@@ -502,8 +547,9 @@
     // ✏️ 기존 도서 수정 모달 처리
     function showEditBookModal(id) {
         const book = mockStore.books.find(b => b.id === id);
-        const currentRootObj = mockStore.categoryMap.find(r => r.id === book.rootCat);
-        let subOptions = currentRootObj ? currentRootObj.subs.map(s => `<option value="${s}" ${book.subCat === s ? 'selected' : ''}>${s}</option>`).join('') : '';
+        const rootObj = mockStore.categoryMap.find(r => r.id === book.rootCatId);
+        const midObj = rootObj ? rootObj.mids.find(m => m.id === book.midCatId) : null;
+        let subOptions = midObj ? midObj.subs.map(s => `<option value="${s}" ${book.subCatName === s ? 'selected' : ''}>${s}</option>`).join('') : '<option value="일반">일반</option>';
 
         openGlobalModal("도서 메타 데이터 정보 수정", `
             <div id="drag-drop-zone" class="w-full h-20 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center p-2 text-center cursor-pointer">
@@ -525,7 +571,7 @@
             book.author = document.getElementById('form-book-author').value.trim();
             book.publisher = document.getElementById('form-book-publisher').value.trim();
             book.price = parseInt(document.getElementById('form-book-price').value) || 0;
-            book.subCat = document.getElementById('form-book-sub').value;
+            book.subCatName = document.getElementById('form-book-sub').value;
             book.img = document.getElementById('form-book-img').value;
             book.detail = document.getElementById('form-book-detail').value;
 
@@ -537,7 +583,6 @@
         initDragDropFrame('form-book-img');
     }
 
-    // ❌ 도서 아이템 영구 삭제 연산
     function deleteBookItem(id) {
         if(confirm("이 가상 도서 목록을 데이터베이스에서 영구히 제거하시겠습니까?")) {
             mockStore.books = mockStore.books.filter(b => b.id !== id);
@@ -546,7 +591,6 @@
         }
     }
 
-    // 도서 상세 조회 뷰포트 핸들러
     function viewBookDetail(id) {
         activeDetailBookId = id;
         const b = mockStore.books.find(book => book.id === id);
@@ -573,7 +617,6 @@
         `;
     }
 
-    // 장바구니 적재 세션 구현
     function addCurrentBookToCart() {
         if(!activeDetailBookId) return;
         const b = mockStore.books.find(book => book.id === activeDetailBookId);
@@ -628,7 +671,6 @@
         renderCartSection();
     }
 
-    // 🛵 실시간 가상 배송 프로세스 타임라인 에뮬레이션 엔진
     function triggerDelivery() {
         if(mockStore.cart.length === 0) return alert("장바구니에 담긴 상품이 없어 모의 주문을 수행할 수 없습니다.");
         
@@ -643,7 +685,6 @@
 
         let currentStep = 0;
         
-        // 타임라인 UI 상태 전체 초기화
         for(let i=0; i<4; i++) {
             document.getElementById(`step-${i}`).className = "text-gray-400 font-bold";
         }
@@ -660,7 +701,6 @@
             document.getElementById('delivery-status-text').innerText = stepsInfo[currentStep].text;
             document.getElementById('delivery-icon').innerText = stepsInfo[currentStep].icon;
             
-            // 활성 단계 하이라이트 전환 효과
             document.getElementById(`step-${currentStep}`).className = "text-blue-600 font-black";
             if(currentStep > 0) {
                 document.getElementById(`step-${currentStep-1}`).className = "text-gray-400 font-medium";
@@ -668,7 +708,6 @@
 
             if(currentStep >= 3) {
                 clearInterval(handle);
-                // 가상 거래 성공 처리 후 휘발성 인메모리 카트 비우기
                 mockStore.cart = [];
                 syncStorage();
                 updateCartState();
@@ -676,7 +715,6 @@
         }, 1800);
     }
 
-    // 전역 통합 검색 연산 구현
     function executeSearch() {
         const query = document.getElementById('search-input').value.trim();
         if(!query) return;
@@ -711,7 +749,6 @@
         });
     }
 
-    // 모달 플러그인 랩퍼 함수 구조 정의
     function openGlobalModal(title, bodyHtml, onConfirmClick) {
         document.getElementById('modal-title-text').innerText = title;
         document.getElementById('modal-body-content').innerHTML = bodyHtml;
@@ -723,7 +760,6 @@
         document.getElementById('global-modal').classList.add('hidden');
     }
 
-    // 최초 로드 시동
     initStore();
 </script>
 </body>
