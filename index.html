@@ -170,7 +170,6 @@
 </div>
 
 <script>
-    // 3단계 완전 계층 구조 데이터 세션 스키마 변환 반영 v6
     let mockStore = JSON.parse(localStorage.getItem('no24_storage_v6')) || {
         categoryMap: [
             {
@@ -199,7 +198,6 @@
         cart: []
     };
 
-    // 3단계 브라우징 타겟 상태 인덱서 변수
     let selectedRootId = "root_1";
     let selectedMidId = "mid_1_1";
     let selectedSubName = "전체보기";
@@ -285,21 +283,18 @@
         renderCategoryEngine();
     }
 
-    // 🌟 3단계 트리 브라우징 엔진 핵심 렌더러
     function renderCategoryEngine() {
         const rootBox = document.getElementById('root-category-tabs');
         const midBox = document.getElementById('mid-category-tabs');
         const subBox = document.getElementById('sub-category-container');
         rootBox.innerHTML = ""; midBox.innerHTML = ""; subBox.innerHTML = "";
 
-        // 존재 여부 안전 검증 및 자동 보정 조정
         let currentRoot = mockStore.categoryMap.find(r => r.id === selectedRootId);
         if(!currentRoot && mockStore.categoryMap.length > 0) {
             selectedRootId = mockStore.categoryMap[0].id;
             currentRoot = mockStore.categoryMap[0];
         }
 
-        // 1. 최상위(대분류) 출력
         mockStore.categoryMap.forEach(root => {
             const btn = document.createElement('button');
             btn.className = `px-3 py-1 rounded-full text-xs font-bold transition-all ${selectedRootId === root.id ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`;
@@ -321,7 +316,6 @@
             currentMid = currentRoot.mids[0];
         }
 
-        // 2. 중간분류(중분류) 출력
         currentRoot.mids.forEach(mid => {
             const btn = document.createElement('button');
             btn.className = `px-2.5 py-1 rounded-md text-xs font-bold transition-all ${selectedMidId === mid.id ? 'bg-amber-500 text-white' : 'bg-white text-amber-700 border border-amber-200 hover:bg-amber-50'}`;
@@ -336,7 +330,6 @@
 
         if(!currentMid) { renderBooksByFilter(); return; }
 
-        // 3. 최하위(소분류) 출력
         const allBtn = document.createElement('button');
         allBtn.className = `px-2.5 py-1 rounded-md text-xs font-medium transition-all ${selectedSubName === '전체보기' ? 'bg-slate-800 text-white' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'}`;
         allBtn.innerText = "✨ 전체보기";
@@ -354,6 +347,7 @@
         renderBooksByFilter();
     }
 
+    // 🌟 화면 깨짐 에러가 해결된 렌더링 함수
     function renderBooksByFilter() {
         const container = document.getElementById('category-books-list');
         container.innerHTML = "";
@@ -376,39 +370,34 @@
 
         targetList.forEach(b => {
             const card = document.createElement('div');
-            card.className = "bg-white p-4 border border-gray-100 rounded-xl flex gap-4 items-center justify-between hover:shadow-xs transition-shadow";
+            card.className = "bg-white p-4 border border-gray-100 rounded-xl flex gap-3 items-center justify-between hover:shadow-xs transition-shadow min-w-0";
+            
             const infoDiv = document.createElement('div');
-            infoDiv.className = "flex gap-3 flex-1 min-w-0 cursor-pointer";
-            infoDiv.onclick = () => viewBookDetail(b.id);
-            const thumb = b.img ? `<img src="${b.img}" class="w-12 h-16 object-cover rounded shadow-xs">` : `<div class="w-12 h-16 bg-gray-100 rounded flex items-center justify-center text-xl">📘</div>`;
+            infoDiv.className = "flex gap-2.5 flex-1 min-w-0 cursor-pointer items-center";
+            const thumb = b.img ? `<img src="${b.img}" class="w-12 h-16 object-cover rounded shadow-xs flex-shrink-0">` : `<div class="w-12 h-16 bg-gray-100 rounded flex items-center justify-center text-xl flex-shrink-0">📘</div>`;
             
             infoDiv.innerHTML = `
                 ${thumb}
                 <div class="flex-1 min-w-0">
-                    <h4 class="font-bold text-sm text-gray-800 truncate">${b.title}</h4>
-                    <p class="text-xs text-gray-400 mt-0.5">${b.author} | ${b.publisher}</p>
+                    <h4 class="font-bold text-sm text-gray-800 truncate pr-1">${b.title}</h4>
+                    <p class="text-xs text-gray-400 mt-0.5 truncate">${b.author} | ${b.publisher}</p>
                     <span class="inline-block bg-blue-50 text-blue-600 text-[9px] px-1.5 py-0.5 rounded-sm font-bold mt-1">${b.subCatName || '기본'}</span>
                 </div>
             `;
             
             const actionDiv = document.createElement('div');
-            actionDiv.className = "flex flex-col items-end gap-2 ml-2";
+            actionDiv.className = "flex flex-col items-end gap-1.5 flex-shrink-0 ml-2 min-w-[70px]";
             actionDiv.innerHTML = `
-                <span class="text-sm font-black text-gray-700">${b.price.toLocaleString()}원</span>
+                <span class="text-xs font-black text-gray-700 whitespace-nowrap">${b.price.toLocaleString()}원</span>
                 <div class="flex gap-1">
-                    <button onclick="showEditBookModal(${b.id})" class="text-[10px] px-2 py-1 border border-amber-300 bg-white text-amber-600 font-bold rounded-md hover:bg-amber-50">수정</button>
-                    <button onclick="deleteBookItem(${b.id})" class="text-[10px] px-2 py-1 border border-red-200 bg-white text-red-500 font-bold rounded-md hover:bg-red-50">삭제</button>
+                    <button onclick="showEditBookModal(${b.id})" class="text-[10px] px-2 py-1 border border-amber-300 bg-white text-amber-600 font-bold rounded-md hover:bg-amber-50 whitespace-nowrap">수정</button>
+                    <button onclick="deleteBookItem(${b.id})" class="text-[10px] px-2 py-1 border border-red-200 bg-white text-red-500 font-bold rounded-md hover:bg-red-50 whitespace-nowrap">삭제</button>
                 </div>
             `;
             card.appendChild(infoDiv); card.appendChild(actionDiv); container.appendChild(card);
         });
     }
 
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       🛠️ 카테고리 계층형 통합 CRUD 제어 기능 (모달 팝업 바인딩)
-       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-
-    // 1️⃣ 1단계 최상위 분류 관리 (추가/수정/삭제)
     function openManageRootModal() {
         let listHtml = mockStore.categoryMap.map(r => `
             <div class="flex items-center gap-2 p-1.5 bg-gray-50 rounded-lg border">
@@ -453,7 +442,6 @@
         syncStorage(); renderCategoryEngine(); openManageRootModal();
     }
 
-    // 2️⃣ 2단계 중간 분류 관리 (추가/수정/삭제)
     function openManageMidModal() {
         let selectOptions = mockStore.categoryMap.map(r => `<option value="${r.id}" ${selectedRootId === r.id ? 'selected' : ''}>${r.name}</option>`).join('');
         let targetRootId = selectedRootId;
@@ -528,7 +516,6 @@
         renderMidListInModal();
     }
 
-    // 3️⃣ 3단계 최하위 세부 분류 배열 관리 (수정/치환 기반)
     function openManageSubModal() {
         let optionsHtml = "";
         mockStore.categoryMap.forEach(root => {
@@ -579,9 +566,6 @@
         syncField();
     }
 
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-
-    // 신규 가상 서적 등록 프로세스 (3단계 스키마 매핑 지원)
     function showAddBookModal() {
         const rootObj = mockStore.categoryMap.find(r => r.id === selectedRootId);
         const midObj = rootObj ? rootObj.mids.find(m => m.id === selectedMidId) : null;
@@ -621,7 +605,6 @@
         initDragDropFrame('form-book-img');
     }
 
-    // 도서 메타 데이터 수정 모달
     function showEditBookModal(id) {
         const book = mockStore.books.find(b => b.id === id);
         const rootObj = mockStore.categoryMap.find(r => r.id === book.rootCatId);
