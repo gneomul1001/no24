@@ -347,7 +347,7 @@
         renderBooksByFilter();
     }
 
-    // 🌟 화면 깨짐 에러가 해결된 렌더링 함수
+    // 🌟 수정된 카테고리별 도서 목록 렌더링 함수
     function renderBooksByFilter() {
         const container = document.getElementById('category-books-list');
         container.innerHTML = "";
@@ -370,10 +370,12 @@
 
         targetList.forEach(b => {
             const card = document.createElement('div');
-            card.className = "bg-white p-4 border border-gray-100 rounded-xl flex gap-3 items-center justify-between hover:shadow-xs transition-shadow min-w-0";
+            // 1. 카드 전체가 클릭 가능하도록 cursor-pointer 스타일과 onclick 이벤트 지정
+            card.className = "bg-white p-4 border border-gray-100 rounded-xl flex gap-3 items-center justify-between hover:shadow-md transition-shadow min-w-0 cursor-pointer";
+            card.onclick = () => viewBookDetail(b.id);
             
             const infoDiv = document.createElement('div');
-            infoDiv.className = "flex gap-2.5 flex-1 min-w-0 cursor-pointer items-center";
+            infoDiv.className = "flex gap-2.5 flex-1 min-w-0 items-center";
             const thumb = b.img ? `<img src="${b.img}" class="w-12 h-16 object-cover rounded shadow-xs flex-shrink-0">` : `<div class="w-12 h-16 bg-gray-100 rounded flex items-center justify-center text-xl flex-shrink-0">📘</div>`;
             
             infoDiv.innerHTML = `
@@ -387,14 +389,18 @@
             
             const actionDiv = document.createElement('div');
             actionDiv.className = "flex flex-col items-end gap-1.5 flex-shrink-0 ml-2 min-w-[70px]";
+            
+            // 2. 우측 버튼 그룹 생성 및 이벤트 버블링 차단(stopPropagation) 처리
             actionDiv.innerHTML = `
                 <span class="text-xs font-black text-gray-700 whitespace-nowrap">${b.price.toLocaleString()}원</span>
                 <div class="flex gap-1">
-                    <button onclick="showEditBookModal(${b.id})" class="text-[10px] px-2 py-1 border border-amber-300 bg-white text-amber-600 font-bold rounded-md hover:bg-amber-50 whitespace-nowrap">수정</button>
-                    <button onclick="deleteBookItem(${b.id})" class="text-[10px] px-2 py-1 border border-red-200 bg-white text-red-500 font-bold rounded-md hover:bg-red-50 whitespace-nowrap">삭제</button>
+                    <button onclick="event.stopPropagation(); showEditBookModal(${b.id})" class="text-[10px] px-2 py-1 border border-amber-300 bg-white text-amber-600 font-bold rounded-md hover:bg-amber-50 whitespace-nowrap">수정</button>
+                    <button onclick="event.stopPropagation(); deleteBookItem(${b.id})" class="text-[10px] px-2 py-1 border border-red-200 bg-white text-red-500 font-bold rounded-md hover:bg-red-50 whitespace-nowrap">삭제</button>
                 </div>
             `;
-            card.appendChild(infoDiv); card.appendChild(actionDiv); container.appendChild(card);
+            card.appendChild(infoDiv); 
+            card.appendChild(actionDiv); 
+            container.appendChild(card);
         });
     }
 
