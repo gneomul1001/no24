@@ -212,14 +212,28 @@
         localStorage.setItem('no24_storage_v6', JSON.stringify(mockStore));
     }
 
+    // 🌟 수정된 드래그 앤 드롭 함수 (이벤트 전파 차단 적용)
     function initDragDropFrame(inputId) {
         const zone = document.getElementById('drag-drop-zone');
         if(!zone) return;
-        zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
-        zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+
+        zone.addEventListener('dragover', (e) => { 
+            e.preventDefault(); 
+            e.stopPropagation(); // 모달 레이어 위로 버블링되는 것 방지
+            zone.classList.add('drag-over'); 
+        });
+
+        zone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            zone.classList.remove('drag-over');
+        });
+
         zone.addEventListener('drop', (e) => {
             e.preventDefault();
+            e.stopPropagation(); // 중요: 드롭 액션이 모달이나 다른 버튼의 트리거를 방해하지 않도록 함
             zone.classList.remove('drag-over');
+            
             const file = e.dataTransfer.files[0];
             if(file && file.type.startsWith('image/')) {
                 const reader = new FileReader();
@@ -347,7 +361,6 @@
         renderBooksByFilter();
     }
 
-    // 🌟 수정된 카테고리별 도서 목록 렌더링 함수
     function renderBooksByFilter() {
         const container = document.getElementById('category-books-list');
         container.innerHTML = "";
@@ -370,7 +383,6 @@
 
         targetList.forEach(b => {
             const card = document.createElement('div');
-            // 1. 카드 전체가 클릭 가능하도록 cursor-pointer 스타일과 onclick 이벤트 지정
             card.className = "bg-white p-4 border border-gray-100 rounded-xl flex gap-3 items-center justify-between hover:shadow-md transition-shadow min-w-0 cursor-pointer";
             card.onclick = () => viewBookDetail(b.id);
             
@@ -390,7 +402,6 @@
             const actionDiv = document.createElement('div');
             actionDiv.className = "flex flex-col items-end gap-1.5 flex-shrink-0 ml-2 min-w-[70px]";
             
-            // 2. 우측 버튼 그룹 생성 및 이벤트 버블링 차단(stopPropagation) 처리
             actionDiv.innerHTML = `
                 <span class="text-xs font-black text-gray-700 whitespace-nowrap">${b.price.toLocaleString()}원</span>
                 <div class="flex gap-1">
